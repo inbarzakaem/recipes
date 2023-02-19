@@ -1,0 +1,703 @@
+openapi: 3.0.0
+info:
+  title: Recipes api
+  description: API for recipes project
+  version: 1.0.1
+servers:
+# local:
+- url: "http://127.0.0.1:3000"
+# remote:
+# - url: "http://132.73.84.144"
+  description: SwaggerHub API Auto Mocking hey
+tags:
+  - name: Recipes
+    description:  Recipes
+  - name: Auth
+    description: Users Authentication 
+  - name: Users
+    description: Operations available users 
+
+  
+paths:
+  /Register:
+    post:
+      tags: 
+        - Auth
+      summary: user registeration
+      operationId: userRegisteration
+      requestBody:
+        description: Adds new user to the system
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user-register'
+      responses:
+        '201':
+          description: New user has been created in the system
+        '400':
+          description: bad input parameter 
+
+  /Login:
+    post:
+      tags:
+        - Auth
+      summary: user's login
+      description: User login to system
+      parameters:
+      - name: username
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          description: user username
+          example: username
+      - name: password
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          description: user password
+          example: password
+      responses:
+        "200":
+          description: user information sent sucessfuly.
+        "404":
+          description: user doesn't exist.
+      
+      
+  /Logout:
+    post:
+      tags:
+        - Auth
+      summary: this is logout
+      description: logout from the system connected user.
+      responses:
+        "200":
+          description: Succsessful logout.
+        "401":
+          description: logged in is required.
+  
+  /recipes/random:
+    get:
+      tags:
+        - Recipes
+      summary: get main 3 recipes page
+      description: get 3 different random recipes - for all users
+      responses:
+        '200':
+          description: list of 3 random recipes return succesfuly
+          content:
+            application/json:
+              schema:
+                type: array
+                description: 3 random previews of recipes
+                example: [Preview_1, Preview_2, Preview_3]
+                items:
+                  $ref: '#/components/schemas/recipe_prev'
+                minItems: 3
+                maxItems: 3
+                uniqueItems: true
+        '404':
+          description: not found 3 random recipes
+  /users/recipes:
+    get:
+      tags:
+        - Users
+      summary: get user 3 last recipes
+      description: get 3 last recipes - user has logged in
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+        description: the username cockie 
+      responses:
+        '200':
+          description: list of 3 last recipes return succesfuly
+          content:
+            application/json:
+              schema:
+                type: array
+                description: 3 last recipes
+                example: [Prev1, Prev2, Prev3]
+                items:
+                  $ref: '#/components/schemas/recipe_prev'
+                maxItems: 3
+                uniqueItems: true
+        '404':
+          description: there are no recipes to return
+
+  /users/recipes/ids:
+    get:
+      tags:
+        - Users
+      summary: get all last recipes id
+      description: get all last recipes id - user has to be logged in
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: string
+        description: the username cockie 
+      responses:
+        '200':
+          description: list of all last recipes id return succesfuly
+          content:
+            application/json:
+              schema:
+                type: array
+                description: all id of last recipes
+                example: [id1, id2, id3...]
+        '404':
+          description: there are no recipes to return
+    # post:
+    #   tags:
+    #     - Users
+    #   summary: add recipe to the user's last watched recipe array
+    #   description: add this recipe to users last watched recipe list 
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: '#/components/schemas/user-recipe'
+    #     description: sends user name and recipe id to append recipe to the user last watched recipes list
+    #   responses:
+    #     "201":
+    #       description: recipe has been successfuly added to the user's last watched array
+    #     "404":
+    #       description: couldnt find username or recipeId
+  /recipes/{recipe_id}:   
+    get:
+      tags:
+        - Recipes
+      summary: get recipe page by recipe Id
+      description: get from server a recipe and its content by recipe Id
+      
+      parameters:
+      - name: recipe_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: the recipe Id of the recipe we would like to display its content
+      responses:
+        '200':
+          description: returns a json object with recipe content
+          content:
+            application/json:
+              schema:
+                 $ref: '#/components/schemas/recipe_prev'
+        '404':
+          description: no recipe_id
+          
+          
+  /recipes/{recipe_id}/details:   
+    get:
+      tags:
+        - Recipes
+      summary: get detailed recipe page by recipe Id
+      description: get from server a recipe and its details content by recipe Id
+      
+      parameters:
+      - name: recipe_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: the recipe Id of the recipe we would like to display its content
+      responses:
+        '200':
+          description: returns a json object with detail's recipe content
+          content:
+            application/json:
+              schema:
+                 $ref: '#/components/schemas/recipe'
+        '404':
+          description: no recipe_id
+
+  
+          
+  /users/favorites:
+    post:
+      tags: 
+        - Users
+      summary: add_to_favorites
+      description: fetch a recepie into the favorite's user
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                favorite_id:
+                  type: integer
+                  description: id of favorite to add to user
+                  example: 3
+      responses:
+        '201':
+          description: "The recepie successfully saved as a favorite"
+        "400":
+          description: "invalid recepie name"
+
+    get:
+      tags: 
+        - Users
+      summary: get_favorites 
+      description: fetch all favorite recipes of {user_id}. 
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: '#/components/schemas/recipe_prev'
+        "400":
+          description: "invalid category name"
+      
+  /users/favorites/ids:
+    get:
+      tags: 
+        - Users
+      summary: get_favorites ids 
+      description: fetch all favorite recipes id's of {user_id}. 
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                description: all ids of favorite recipes
+                example: [id1, id2, id3...]
+        "400":
+          description: "no favorite's recipes"
+
+  /users/my_recipes:
+    post:
+      tags: 
+      - Users
+      summary: add new recipe
+      description: add recipe to favorite
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipe'
+        description: recipe details to add to the DB
+      responses:
+        '201':
+          description: New recipe has been add to favorite
+        '400':
+          description: no recipe or id
+    get:
+      tags: 
+        - Users
+      summary: get_my recipes
+      description: fetch all recipes that user create. 
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: '#/components/schemas/recipe_prev'
+                 
+        "400":
+          description: "invalid category name"
+
+  /recipes/search:
+    get:
+      tags: 
+        - Recipes
+      summary: search_by_name 
+      description: search for recipes based on partial or full {name_query} 
+      parameters: 
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: number
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: cusine
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Cusine'
+      - name: diet
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Diet'
+      - name: intolerances 
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Intolerances' 
+      responses:
+        "200":
+          description: "returned recipes that matches query {name_query}"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: '#/components/schemas/recipe_prev'
+        "400":
+          description: "Something went wrong when trying to search in external API"  
+  /users/family_recipe:
+    post:
+      tags: 
+      - Users
+      summary: add new recipe to family_recipe
+      description: add recipe to family_recipe
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/family_recipe'
+        description: family recipe details to add to the DB
+      responses:
+        '201':
+          description: New recipe has been add to family_recipe
+        '400':
+          description: no recipe or id
+    get:
+      tags: 
+        - Users
+      summary: get_my recipes
+      description: fetch all family recipes that user create. 
+      parameters:
+      - name: user_id
+        in: cookie 
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: '#/components/schemas/family_recipe'
+                 
+        "400":
+          description: "invalid category name"  
+  
+components:
+  schemas:
+    user-register:
+      type: object
+      required:
+        - username
+        - firstName
+        - lastName
+        - country
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 8
+          description: username contain between 3 to 8 letter only
+          example: inbarza
+        firstName:
+          type: string
+          description: user's first name
+          example: Alon
+        lastName:
+          type: string
+          description: user's last name
+          example: Levi
+        country:
+          type: string
+          description: user's country
+          example: Israel
+        password:
+          type: string
+          minLength: 5
+          maxLength: 10
+          format: password
+          description: password contains between 5 to 10 character, at least one of them is a number and a spaciel character
+          example: Aa123456!
+        email:
+          type: string
+          format: email
+          description: user's email
+          example: example@gmail.com
+        image-url:
+          type: string
+          format: URL
+          description: URL for the user's image
+          example: 'https://cloudinary.com/test'
+    
+    
+    recipe_prev:
+      type: object
+      required:
+        - recipeId
+        - image
+        - title
+        - readyInMinutes
+        - aggregateLikes
+        - vegan
+        - vegetarian
+        - glutenFree
+        - isWatched
+        - isFavorite
+      properties:
+        recipeId:
+          type: string
+          description: recipe's Id in the system
+          example: '12345'
+        image:
+          type: string
+          format: URL
+          description: URL for the recipe's image
+          example: https://img.mako.co.il/2018/05/07/IMG_2700_i.jpg
+        title:
+          type: string
+          description: a recipe's name/title 
+          example: bolognese lasagna
+        readyInMinutes:
+          type: integer
+          minimum: 0
+          description: preperation time
+          example: 30
+        aggregateLikes:
+          type: integer
+          minimum: 0
+          description: number of likes for recipe
+          example: 10
+        vegan:
+          type: boolean
+          description: is vegan
+          example: vegan
+        vegetarian:
+          type: boolean
+          description: is vegetarian 
+          example: vegetarian
+        glutenFree:
+          type: boolean
+          description: gluten free(true) or not gluten free(false)
+          example: false
+        isWatched:
+          type: boolean
+          description:  watched (true) if the user viewed or not (false)
+          example: true
+        isFavorite:
+          type: boolean
+          description:  favorite (true) or not (false)
+          example: true
+   
+    ingredient:
+      type: object
+      required:
+      - name
+      - amount
+      - measure
+      properties:
+        name:
+          type: string
+          description: the name of the ingredient
+          example: 5 eggs
+        amount:
+          type: number
+          format: float
+          minimum: 0
+          description: the amount of the ingredient,must be positive number.
+          example: 4
+        measure:
+          type: string
+          enum: [units, tsp, tbsp, cup, g, ml, pinch]
+          description: Unit of measure
+          example: g       
+    recipe:
+      type: object
+      required:
+      - Preview
+      - Ingredients
+      - Instructions
+      - servingsAmount
+      properties:
+        Preview:
+          $ref: '#/components/schemas/recipe_prev'
+        Ingredients:
+          type: array
+          description: a list of the ingredients 
+          example: [ingredient1, ingredient2]
+          items:
+            $ref: '#/components/schemas/ingredient'
+        Instructions:
+          type: array
+          items: 
+            type: string
+          description: list of the instructions of the recipe
+          example: ["boil water", "add the rice for 10 minutes"]
+        servingsAmount:
+          type: integer
+          minimum: 1
+          description: the recipe's amount of servings
+          example: 4
+          
+    family_recipe:
+      type: object
+      required:
+      - recipe
+      - owner
+      - recipe_time
+      properties:
+        recipe:
+          $ref: '#/components/schemas/recipe'
+        owner:
+          type: string
+          description: the recipews owner
+          example: aunt miri
+        recipe_time:
+          type: string
+          description: when we make the recipe
+          example: aunt miri
+    
+    user-recipe:
+      type: object
+      required:
+          - username
+          - recipeId
+      properties:
+          username:
+            type: string
+            minLength: 3
+            maxLength: 8
+            description: username 
+            example: 'shahar'
+          recipeId:
+            type: string
+            description: recipe's Id 
+            example: '12345'
+    Cusine:
+      type: string
+      enum:
+      - African
+      - American
+      - British
+      - Cajun
+      - Caribbean
+      - Chinese
+      - Eastern European
+      - European
+      - French
+      - German
+      - Greek
+      - Indian
+      - Irish
+      - Italian
+      - Japanese
+      - Jewish
+      - Korean
+      - Latin American
+      - Mediterranean
+      - Mexican
+      - Middle Eastern
+      - Nordic
+      - Southern
+      - Spanish
+      - Thai
+      - Vietnamese
+    Diet:
+      type: string
+      enum:
+      - Gluten Free
+      - Ketogenic
+      - Vegetarian
+      - Lacto-Vegetarian
+      - Ovo-Vegetarian
+      - Vegan 
+      - Pescetarian
+      - Paleo
+      - Primal
+      - Whole30
+    Intolerances:
+      type: string
+      enum:
+      - Dairy
+      - Egg
+      - Gluten
+      - Grain
+      - Peanut
+      - Seafood
+      - Sesame
+      - Shellfish
+      - Soy
+      - Sulfite
+      - Tree Nut
+      - Wheat
